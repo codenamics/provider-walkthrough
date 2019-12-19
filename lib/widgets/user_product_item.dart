@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:provider_walkthrough/providers/products_provider.dart';
+import 'package:provider_walkthrough/screens/edit_product_screen.dart';
 
 class UserProductItem extends StatelessWidget {
+  final String id;
   final String title;
   final String imageUrl;
+  
 
-  UserProductItem({this.title, this.imageUrl});
+  UserProductItem({this.id,this.title, this.imageUrl});
   @override
   Widget build(BuildContext context) {
     return ListTile(
@@ -15,11 +20,15 @@ class UserProductItem extends StatelessWidget {
         child: Row(
           children: <Widget>[
             IconButton(
-              onPressed: (){},
+              onPressed: (){
+                Navigator.of(context).pushNamed(EditProductScreen.routeName, arguments: id);
+              },
               icon: Icon(Icons.edit),
             ),
             IconButton(
-              onPressed: (){},
+              onPressed: (){
+Provider.of<Products>(context, listen: false).deleteProduct(id);
+              },
               icon: Icon(Icons.delete),
             ),
           ],
