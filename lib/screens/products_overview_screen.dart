@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/products.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/products_grid.dart';
 import '../widgets/badge.dart';
 import '../providers/cart.dart';
 import './cart_screen.dart';
+import '../providers/products.dart';
 
 enum FilterOptions {
   Favorites,
@@ -19,6 +21,49 @@ class ProductsOverviewScreen extends StatefulWidget {
 
 class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
   var _showOnlyFavorites = false;
+  var _isInit = true;
+  var _isLoading = true;
+  @override
+  void didChangeDependencies() {
+    if(_isInit){
+      setState(() {
+       _isLoading = true;
+      });
+    
+    Provider.of<Products>(context).fetchAndSetProducts()
+    .catchError((onError){
+       showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('An error occurred!'),
+            content: Text('Something went wrong.'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Okay'),
+                onPressed: () {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                  Navigator.of(ctx).pop();
+                },
+              )
+            ],
+          ),
+        );
+    })
+    .then((_){
+      setState(() {
+       _isLoading = false;
+      });
+    });
+    }
+_isInit = false;
+    super.didChangeDependencies();
+  }
+
+Future<void> _refreshProducts() async{
+  await Provider.of<Products>(context).fetchAndSetProducts();
+}
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +112,11 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
         ],
       ),
       drawer: AppDrawer(),
-      body: ProductsGrid(_showOnlyFavorites),
+      body:_isLoading ? Center(child: CircularProgressIndicator()) : RefreshIndicator(
+        onRefresh: () =>
+          _refreshProducts(),
+        
+        child: ProductsGrid(_showOnlyFavorites)),
     );
   }
 }
