@@ -1,9 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider_walkthrough/models/http_exception.dart';
 
 class Product with ChangeNotifier {
   final String id;
@@ -22,21 +20,29 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  Future<void> toggleFavoriteStatus(String id) async {
-    final url = 'https://flutter-prov.firebaseio.com/products/$id.json';
+  void _setFavValue(bool newValue) {
+    isFavorite = newValue;
+    notifyListeners();
+  }
+
+  Future<void> toggleFavoriteStatus(String token, String userId) async {
     final oldStatus = isFavorite;
     isFavorite = !isFavorite;
     notifyListeners();
+    final url =
+        'https://flutter-prov.firebaseio.com/userFavorites/$userId/$id.json?auth=$token';
     try {
-      final response =
-          await http.patch(url, body: json.encode({"isFavorite": isFavorite}));
+      final response = await http.put(
+        url,
+        body: json.encode(
+          isFavorite,
+        ),
+      );
       if (response.statusCode >= 400) {
-        isFavorite = oldStatus;
-        notifyListeners();
+        _setFavValue(oldStatus);
       }
-    } catch (e) {
-         isFavorite = oldStatus;
-         notifyListeners();
+    } catch (error) {
+      _setFavValue(oldStatus);
     }
   }
 }
