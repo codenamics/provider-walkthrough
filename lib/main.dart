@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProxyProvider<Auth, Orders>(
             update: (BuildContext context, auth, previousOrders) => Orders(
                 auth.token,
-                previousOrders == null ? [] : previousOrders.orders),
+                previousOrders == null ? [] : previousOrders.orders, auth.userId),
                   create: (_) {},
           ),
             
@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
                       accentColor: Colors.deepOrange,
                       fontFamily: 'Lato',
                     ),
-                    home: auth.isAuth ? ProductsOverviewScreen() : AuthScreen(),
+                    home: auth.isAuth ? ProductsOverviewScreen() : FutureBuilder(future: auth.tryAutoLog(), builder: (ctx, authStatus) =>authStatus.connectionState == ConnectionState.waiting ? Center(child: CircularProgressIndicator(),) : AuthScreen()) ,
                     routes: {
                       ProductDetailScreen.routeName: (ctx) =>
                           ProductDetailScreen(),
